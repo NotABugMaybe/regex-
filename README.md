@@ -5,6 +5,7 @@ An accessible, monochrome workspace for building, testing, and understanding Jav
 ## Features
 
 - Live match highlighting and match offsets in an interruptible Web Worker
+- Paste text or load a local text file (TXT, CSV, JSON, MD, or LOG) and inspect matches without uploading its contents
 - Pattern recipes, JavaScript flags, copy, and replacement preview
 - Gemini Flash-Lite pattern generation through a server-side API
 - API key protected JSON endpoints for generation, testing, and webhook delivery
