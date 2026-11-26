@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Regex Studio API documentation for regex generation, testing, and webhooks.">
+  <title>API guide — Regex Studio</title>
+  <style>
+    :root{color-scheme:light;--paper:#f7f7f5;--white:#fff;--ink:#171715;--body:#454541;--muted:#6b6b66;--line:#deded9;--line-dark:#b9b9b2;--wash:#efefec;--serif:Georgia,'Times New Roman',serif;--sans:Arial,Helvetica,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.65 var(--sans)}a{color:inherit}.skip{position:absolute;left:10px;top:-50px;background:#fff;padding:10px;border:2px solid}.skip:focus{top:10px}:focus-visible{outline:3px solid #555;outline-offset:3px}.bar{height:65px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 900px)/2))}.brand{font-size:13px;font-weight:700;text-decoration:none}.bar a:last-child{font-size:12px;color:var(--muted)}main{max-width:900px;padding:0 26px;margin:auto}.intro{padding:45px 0 24px;border-bottom:1px solid var(--line)}.kicker{font:10px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}h1{font:normal clamp(35px,5vw,51px)/1.1 var(--serif);letter-spacing:-.04em;margin:12px 0 9px}h2{font:normal 25px var(--serif);letter-spacing:-.02em;margin:39px 0 10px}h3{font:700 13px var(--sans);margin:23px 0 7px}p{color:var(--body);margin:8px 0 14px}.lead{font-size:14px;color:var(--muted);max-width:700px}.route{border:1px solid var(--line-dark);background:var(--white);padding:14px 15px;margin:11px 0 15px}.path{font:12px var(--mono)}.verb{font-weight:700;margin-right:10px}.tag{float:right;color:var(--muted);font:10px var(--mono);letter-spacing:.08em}pre{background:#fff;border:1px solid var(--line);padding:13px 15px;overflow:auto;font:11px/1.7 var(--mono);color:#333;margin:9px 0 14px}code{font:11px var(--mono);background:var(--wash);padding:2px 4px;color:#171715}.note{border-left:2px solid var(--ink);padding:9px 12px;background:#fff;color:var(--muted);font-size:12px;margin:15px 0}table{width:100%;border-collapse:collapse;background:#fff;margin:11px 0 17px;font-size:12px}th,td{text-align:left;border:1px solid var(--line);padding:9px 11px}th{font-weight:700;background:var(--wash)}.contents{display:flex;flex-wrap:wrap;gap:7px;margin:17px 0}.contents a{border:1px solid var(--line);padding:5px 9px;font-size:11px;text-decoration:none;color:var(--body)}.contents a:hover{background:#fff;border-color:var(--line-dark)}ul,ol{color:var(--body);padding-left:21px}li{padding:2px 0}.footer{padding:34px 0 48px;margin-top:38px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}@media(max-width:600px){main{padding:0 16px}.bar{padding:0 16px}.intro{padding-top:34px}.tag{float:none;display:block;margin-top:6px}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to documentation</a>
+  <header class="bar"><a class="brand" href="/">Regex Studio</a><a href="/">Back to workspace</a></header>
+  <main id="main">
+    <div class="intro"><div class="kicker">Integration guide · JSON API</div><h1>Build with Regex Studio.</h1><p class="lead">Generate JavaScript regular expressions with Gemini, test expressions against text, or notify your service when a pattern has been generated.</p></div>
+    <nav class="contents" aria-label="On this page"><a href="#setup">Setup</a><a href="#auth">Authentication</a><a href="#generation">Generate</a><a href="#testing">Test</a><a href="#webhooks">Webhooks</a><a href="#errors">Responses</a></nav>
+    <section id="setup"><h2>Setup</h2><p>The base URL is your deployed app, such as <code>https://your-project.vercel.app</code>. For local development, run <code>npm install</code> and <code>npm run dev</code>; the local Node server serves the app at <code>http://localhost:3000</code>.</p><p>Configure <code>GEMINI_API_KEY</code> and <code>APP_API_KEY</code> in local <code>.env</code> or Vercel Project Settings → Environment Variables. Keep both values private.</p><div class="note">The public playground endpoint has a per-instance limit of 12 generation requests per minute per client IP. Versioned endpoints require a Bearer API key.</div></section>
+    <section id="auth"><h2>Authentication</h2><p>Send the application key in the <code>Authorization</code> header for every <code>/api/v1/</code> endpoint. Use it from your server; do not put the key in a browser bundle.</p><pre>Authorization: Bearer YOUR_APP_API_KEY
+Content-Type: application/json</pre><p>Requests and responses use JSON. CORS preflight is supported for browser integrations. Responses include an <code>Access-Control-Allow-Origin: *</code> header.</p></section>
+    <section id="generation"><h2>Generate a pattern</h2><div class="route"><span class="tag">AUTHENTICATED</span><span class="path"><span class="verb">POST</span>/api/v1/generate</span></div><p>Ask Gemini Flash-Lite to return a pattern, JavaScript flags, a short explanation, and examples. Descriptions must be 1–1,000 characters.</p><pre>{ "description": "Find email addresses with plus aliases" }</pre><pre>{
+  "success": true,
+  "data": {
+    "pattern": "\\b[\\w.+-]+@[\\w-]+\\.[\\w.-]+\\b",
+    "flags": "gi",
+    "explanation": "Matches common email address formats.",
+    "examples": ["alex@example.com", "team+news@site.io"]
+  }
+}</pre><h3>Public playground route</h3><p><code>POST /api/generate</code> accepts the same body without authentication so the website can call it without exposing your application key. It is rate-limited. The versioned endpoint is intended for trusted integrations.</p></section>
+    <section id="testing"><h2>Test an expression</h2><div class="route"><span class="tag">AUTHENTICATED</span><span class="path"><span class="verb">POST</span>/api/v1/regex-test</span></div><p>Test a JavaScript regular expression against text. Pattern source is limited to 500 characters; input text is limited to 100,000 characters. At most 1,000 matches are returned.</p><pre>{
+  "pattern": "\\d+",
+  "flags": "g",
+  "text": "Order 104 ships in 3 days"
+}</pre><pre>{
+  "success": true,
+  "data": {
+    "count": 2,
+    "matches": [
+      { "match": "104", "index": 6, "groups": null },
+      { "match": "3", "index": 19, "groups": null }
+    ]
+  }
+}</pre><p>Flags use JavaScript syntax: <code>d g i m s u v y</code>. Invalid patterns and unsupported flag combinations return <code>400</code>.</p></section>
+    <section id="webhooks"><h2>Webhook events</h2><div class="route"><span class="tag">AUTHENTICATED</span><span class="path"><span class="verb">POST</span>/api/v1/generate-and-notify</span></div><p>Generate a regex and optionally send a <code>regex.generated</code> event to your public HTTPS endpoint. Delivery waits up to five seconds and reports whether the receiver returned a successful status.</p><pre>{ "description": "Find ISO formatted dates", "webhookUrl": "https://example.com/hooks/regex" }</pre><pre>{
+  "success": true,
+  "data": { "pattern": "\\b\\d{4}-\\d{2}-\\d{2}\\b", "flags": "g", "explanation": "Matches ISO dates.", "examples": [] },
+  "webhook": { "delivered": true, "status": 200 }
+}</pre><p>Webhook headers include <code>Content-Type: application/json</code> and <code>X-Regex-Studio-Event: regex.generated</code>. The body has this shape:</p><pre>{
+  "id": "event-uuid",
+  "type": "regex.generated",
+  "createdAt": "2026-11-17T12:00:00.000Z",
+  "data": { "pattern": "...", "flags": "g", "explanation": "...", "examples": [] }
+}</pre><h3>Example receiver</h3><pre>app.post('/hooks/regex', express.json(), (req, res) => {
+  if (req.header('X-Regex-Studio-Event') !== 'regex.generated') {
+    return res.status(400).json({ error: 'unsupported_event' });
+  }
+  console.log(req.body.data.pattern);
+  return res.status(200).json({ received: true });
+});</pre><p><code>POST /api/webhooks/echo</code> is a sample JSON receiver. It responds with <code>202 Accepted</code> and echoes the received event with a timestamp.</p></section>
+    <section id="errors"><h2>HTTP responses</h2><table><thead><tr><th scope="col">Status</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td><code>200</code></td><td>Request succeeded.</td></tr><tr><td><code>202</code></td><td>Echo webhook accepted the request.</td></tr><tr><td><code>400</code></td><td>Invalid JSON input, pattern, description, or webhook URL.</td></tr><tr><td><code>401</code></td><td>Missing or incorrect API key.</td></tr><tr><td><code>405</code></td><td>Unsupported HTTP method; check the <code>Allow</code> header.</td></tr><tr><td><code>429</code></td><td>Public generation rate limit or Gemini quota reached.</td></tr><tr><td><code>502</code></td><td>Gemini failed or returned an invalid pattern.</td></tr><tr><td><code>503</code></td><td>A server environment variable is not configured.</td></tr></tbody></table><p>Error bodies use a consistent shape: <code>{ "error": "code", "message": "Description" }</code>.</p></section>
+    <section id="deploy"><h2>Deploy</h2><ol><li>Import the project into Vercel or run <code>npx vercel</code>.</li><li>Set <code>GEMINI_API_KEY</code> and <code>APP_API_KEY</code> in the project’s environment settings.</li><li>Deploy, then open the app and try a prompt and a few patterns.</li></ol><p>The regex tester and replacement preview run in a Web Worker in the browser. A slow expression can be interrupted without locking the page. Test strings are not sent to Gemini.</p></section>
+    <footer class="footer">Regex Studio · JavaScript regular expression syntax</footer>
+  </main>
+</body>
+</html>
